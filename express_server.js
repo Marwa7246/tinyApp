@@ -7,7 +7,7 @@ app.set('view engine', 'ejs');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
-function genetateRandomString() {
+const genetateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
 };
 
@@ -39,8 +39,10 @@ app.get('/hello', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('ok');
+  const newUrl = req.body.longURL;
+  const newId = genetateRandomString();
+  urlDatabase[newId] = newUrl;
+  res.redirect(`/urls/${newId}`);
 });
 
 app.listen(PORT, () => {
