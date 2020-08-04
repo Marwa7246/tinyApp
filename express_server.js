@@ -65,6 +65,10 @@ app.get(`/u/:shortURL`, (req, res) => {
   }
 });
 
+app.get(`*`, (req, res) => {
+  res.statusCode = 404;
+  res.render('404');
+});
 
 
 app.listen(PORT, () => {
