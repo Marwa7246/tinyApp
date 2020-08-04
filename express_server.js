@@ -52,13 +52,20 @@ app.post('/urls', (req, res) => {
 //Get to longURL page after requesting the shortURL (redirect)
 app.get(`/u/:shortURL`, (req, res) => {
   const redirectShortUrl = req.params.shortURL;
-  //res.send('ok');
-  //req.o
-  const redirectLongUrl = urlDatabase[redirectShortUrl];
-  console.log(redirectLongUrl);
-  res.redirect(redirectLongUrl);
+  console.log(redirectShortUrl);
 
+  //Render a 404 error page if wrong short URL is requested
+  if (!urlDatabase[redirectShortUrl]) {
+    res.statusCode = 404;
+    res.render('404');
+  } else {
+    const redirectLongUrl = urlDatabase[redirectShortUrl];
+    console.log(redirectLongUrl);
+    res.redirect(redirectLongUrl);
+  }
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
