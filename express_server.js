@@ -52,7 +52,6 @@ app.post('/urls', (req, res) => {
 //Get to longURL page after requesting the shortURL (redirect)
 app.get(`/u/:shortURL`, (req, res) => {
   const redirectShortUrl = req.params.shortURL;
-  console.log(redirectShortUrl);
 
   //Render a 404 error page if wrong short URL is requested
   if (!urlDatabase[redirectShortUrl]) {
@@ -60,9 +59,21 @@ app.get(`/u/:shortURL`, (req, res) => {
     res.render('404');
   } else {
     const redirectLongUrl = urlDatabase[redirectShortUrl];
-    console.log(redirectLongUrl);
     res.redirect(redirectLongUrl);
   }
+});
+
+//Delete a URL from the urlDatabase - DELETE(POST)
+app.post('/urls/:shortURL/delete', (req, res) =>{
+  //extract the id from the url
+  //re.params
+  const ShortUrl = req.params.shortURL;
+  
+  //delete it from the database
+  delete urlDatabase[ShortUrl];
+
+  //redirect to /urls
+  res.redirect('/urls');
 });
 
 app.get(`*`, (req, res) => {
