@@ -7,6 +7,7 @@ app.set('view engine', 'ejs');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
+//Generate a random shortURL Id
 const genetateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
 };
@@ -16,28 +17,31 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//Get the home page
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
+
+//Get all the available urls in the database object
 app.get('/urls', (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
 
+
+//get a form to add a new URL
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
 });
 
+//Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render('urls_show', templateVars);
 });
 
-app.get('/hello', (req, res) => {
-  res.send('<html><body> Hello <b>World</b></body></html>\n');
-});
-
+//Post a new longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
 app.post('/urls', (req, res) => {
   const newUrl = req.body.longURL;
   const newId = genetateRandomString();
@@ -45,6 +49,18 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${newId}`);
 });
 
+//Get to longURL page after requesting the shortURL (redirect)
+app.get(`/u/:shortURL`, (req, res) => {
+  const redirectShortUrl = req.params.shortURL;
+  //res.send('ok');
+  //req.o
+  const redirectLongUrl = urlDatabase[redirectShortUrl];
+  console.log(redirectLongUrl);
+  res.redirect(redirectLongUrl);
+
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
