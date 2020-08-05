@@ -15,6 +15,23 @@ const genetateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
 };
 
+const users = {
+  "u8qwvt": {
+    id: "u8qwvt",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "u5qaf3": {
+    id: "u5qaf3",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
+const searchUser = function(users, userId) {
+  return users[userId];
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -28,7 +45,9 @@ app.get('/', (req, res) => {
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["name"]};
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  let templateVars = { urls: urlDatabase, user: user};
   //console.log(templateVars);
   res.render('urls_index', templateVars);
 });
@@ -36,13 +55,18 @@ app.get('/urls', (req, res) => {
 
 //get a form to add a new URL
 app.get('/urls/new', (req, res) => {
-  let templateVars = {username: req.cookies["name"]};
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  let templateVars = { user: user};
   res.render('urls_new', templateVars);
 });
 
 //Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["name"] };
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { url: url, user: user};
   res.render('urls_show', templateVars);
 });
 
@@ -86,7 +110,10 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 app.post('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //req.params
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["name"]};
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { url: url, user: user};
   res.render('urls_show', templateVars);
 });
 
@@ -108,18 +135,29 @@ app.post('/login', (req, res) => {
 
 //POST a route to logout in the _header partial file
 app.post('/logout', (req, res) => {
-  res.clearCookie('name');
+  res.clearCookie('user_id');
   res.redirect('urls');
 });
 
 
 //GET a route to a page with a registration form (GET) READ
 app.get('/register', (req, res) => {
-  let templateVars = {username: req.cookies["name"]};
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  let templateVars = { urls: urlDatabase, user: user};
   res.render('register', templateVars);
 });
 
+//POST a route to create a new user
+app.post('/register',(req, res) => {
+  const newId = genetateRandomString();
+  const newUser = {id: newId, email: req.body.email, password: req.body.password};
+  users[newId] = newUser;
+  res.cookie('user_id' , newId);
+  console.log(users);
+  res.redirect('urls');
 
+});
 
 
 //get an error page if a non excisting page was requested
