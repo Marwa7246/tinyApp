@@ -36,14 +36,13 @@ const searchUser = function(users, userId) {
 const userExist = function(users, requestedEmail) {
   for (const element in users) {
     if (users[element].email === requestedEmail) {
-      console.log('true');
-      return true;
+      return element;
     }
   }
-  console.log('false');
   return false;
 };
- 
+
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -141,7 +140,9 @@ app.post('/urls/:shortURL', (req, res) =>{
 
 //POST a route to submitting a form of username(login) in the _header partial file
 app.post('/login', (req, res) => {
-  res.cookie('name' , req.body.username);
+  console.log(req.body);
+  const userId = userExist(users, req.body.email);
+  res.cookie('user_id', userId);
   res.redirect('urls');
 });
 
@@ -157,21 +158,36 @@ app.post('/logout', (req, res) => {
 app.get('/register', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  let templateVars = { urls: urlDatabase, user: user};
+  const error = '';
+  let templateVars = { urls: urlDatabase, user: user, error: error};
   res.render('register', templateVars);
 });
 
 //POST a route to create a new user
 app.post('/register',(req, res) => {
-  if (userExist(users, req.body.email)) {
+
+  if (!req.body.email || !req.body.password) {
     res.statusCode = 400;
-    res.send('Error-bad request. Email already exists!');
+    const userId = req.cookies["user_id"];
+    const user = searchUser(users, userId);
+    const error = 'Error-bad request. Email/password cannot be empty!';
+    let templateVars = { urls: urlDatabase, user: user, error: error};
+    res.render("register", templateVars);
+  } else if (userExist(users, req.body.email)) {
+    res.statusCode = 400;
+    const error = 'Error-Bad request. Email already exists!';
+    console.log(users);
+    const userId = req.cookies["user_id"];
+    const user = searchUser(users, userId);
+    let templateVars = {user: user, error: error};
+    res.render("register", templateVars);
+    //res.send('Error-Bad request. Email already exists!');
+
   } else {
     const newId = genetateRandomString();
     const newUser = {id: newId, email: req.body.email, password: req.body.password};
     users[newId] = newUser;
-    res.cookie('user_id' , newId);
-    console.log(users);
+    res.cookie('user_id', newId);
     res.redirect('urls');
   }
 
