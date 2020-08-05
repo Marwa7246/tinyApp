@@ -166,22 +166,15 @@ app.get('/register', (req, res) => {
 //POST a route to create a new user
 app.post('/register',(req, res) => {
 
-  if (!req.body.email || !req.body.password) {
+  if (!req.body.email || !req.body.password || userExist(users, req.body.email)) {
+    let error = 'Error-Bad request. ';
+    error += (userExist(users, req.body.email)) ? 'Email already exists!' : 'Email/password cannot be empty!';
+
     res.statusCode = 400;
     const userId = req.cookies["user_id"];
     const user = searchUser(users, userId);
-    const error = 'Error-bad request. Email/password cannot be empty!';
-    let templateVars = { urls: urlDatabase, user: user, error: error};
+    let templateVars = { user: user, error: error};
     res.render("register", templateVars);
-  } else if (userExist(users, req.body.email)) {
-    res.statusCode = 400;
-    const error = 'Error-Bad request. Email already exists!';
-    console.log(users);
-    const userId = req.cookies["user_id"];
-    const user = searchUser(users, userId);
-    let templateVars = {user: user, error: error};
-    res.render("register", templateVars);
-    //res.send('Error-Bad request. Email already exists!');
 
   } else {
     const newId = genetateRandomString();
@@ -190,10 +183,7 @@ app.post('/register',(req, res) => {
     res.cookie('user_id', newId);
     res.redirect('urls');
   }
-
-
 });
-
 
 //get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {
