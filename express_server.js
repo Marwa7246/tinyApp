@@ -72,7 +72,7 @@ app.get(`/u/:shortURL`, (req, res) => {
 //Delete a URL from the urlDatabase - DELETE(POST)
 app.post('/urls/:shortURL/delete', (req, res) =>{
   //extract the id from the url
-  //re.params
+  //req.params
   const ShortUrl = req.params.shortURL;
   
   //delete it from the database
@@ -86,7 +86,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 //1- show the requested url page after hitting edit in the database page
 app.post('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
-  //re.params
+  //req.params
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["name"]};
   res.render('urls_show', templateVars);
 });
@@ -100,13 +100,18 @@ app.post('/urls/:shortURL', (req, res) =>{
 });
 
 
-//POST a route to submitting a form of username in the _header partial file
+//POST a route to submitting a form of username(login) in the _header partial file
 app.post('/login', (req, res) => {
   res.cookie('name' , req.body.username);
-  console.log('from login route:' , req.body.username);
   res.redirect('urls');
 });
 
+
+//POST a route to logout in the _header partial file
+app.post('/logout', (req, res) => {
+  res.clearCookie('name');
+  res.redirect('urls');
+});
 
 //get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {
