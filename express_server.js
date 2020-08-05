@@ -27,10 +27,23 @@ const users = {
     password: "dishwasher-funk"
   }
 };
-
+//find a user from the user database using the user_id cookie
 const searchUser = function(users, userId) {
   return users[userId];
 };
+
+ 
+const userExist = function(users, requestedEmail) {
+  for (const element in users) {
+    if (users[element].email === requestedEmail) {
+      console.log('true');
+      return true;
+    }
+  }
+  console.log('false');
+  return false;
+};
+ 
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -150,12 +163,18 @@ app.get('/register', (req, res) => {
 
 //POST a route to create a new user
 app.post('/register',(req, res) => {
-  const newId = genetateRandomString();
-  const newUser = {id: newId, email: req.body.email, password: req.body.password};
-  users[newId] = newUser;
-  res.cookie('user_id' , newId);
-  console.log(users);
-  res.redirect('urls');
+  if (userExist(users, req.body.email)) {
+    res.statusCode = 400;
+    res.send('Error-bad request. Email already exists!');
+  } else {
+    const newId = genetateRandomString();
+    const newUser = {id: newId, email: req.body.email, password: req.body.password};
+    users[newId] = newUser;
+    res.cookie('user_id' , newId);
+    console.log(users);
+    res.redirect('urls');
+  }
+
 
 });
 
