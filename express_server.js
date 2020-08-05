@@ -76,6 +76,27 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   res.redirect('/urls');
 });
 
+//Update a URL in the urlDatabase - UPDATE(POST)
+//1- show the requested url page after hitting edit in the database page
+app.post('/urls/:shortURL/update', (req, res) =>{
+  //extract the id from the url
+  //re.params
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  res.render('urls_show', templateVars);
+});
+
+//2- POST the new longURL value after filling the form of update the longURL
+app.post('/urls/:shortURL', (req, res) =>{
+  //extract the shortURL from the url req.params
+  //extract the longURL from req.body
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  console.log(urlDatabase);
+  
+  res.redirect('/urls');
+});
+
+
+//get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {
   res.statusCode = 404;
   res.render('404');
@@ -86,3 +107,4 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+ 
