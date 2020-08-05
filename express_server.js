@@ -28,7 +28,6 @@ app.get('/', (req, res) => {
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
-  console.log('from get home:', req.cookies);
   let templateVars = { urls: urlDatabase, username: req.cookies["name"]};
   //console.log(templateVars);
   res.render('urls_index', templateVars);
@@ -112,6 +111,16 @@ app.post('/logout', (req, res) => {
   res.clearCookie('name');
   res.redirect('urls');
 });
+
+
+//GET a route to a page with a registration form (GET) READ
+app.get('/register', (req, res) => {
+  let templateVars = {username: req.cookies["name"]};
+  res.render('register', templateVars);
+});
+
+
+
 
 //get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {

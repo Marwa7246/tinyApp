@@ -11,6 +11,8 @@
 <body>
   <header><%- include('partials/_header') %></header>
   <main style="margin: 1em;">
+    <h3>Not a user? Please <a margin = "20px" font-weight="bold" href="/register">REGISTER! </a></h3>
+
     <h3>My URLs</h3>
     <table class="table">
       <thead>
@@ -32,7 +34,8 @@
                 </form>        
               </td>
               <td>
-                <form method="POST" action="/urls/<%= url %>/delete"><input type="submit" value="delete" />
+                <form method="POST" action="/urls/<%= url %>/delete">
+                  <input type="submit" class="btn btn-danger" value="delete" />
                 </form>        
               </td>
           </tr>
