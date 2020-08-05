@@ -28,19 +28,22 @@ app.get('/', (req, res) => {
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  console.log('from get home:', req.cookies);
+  let templateVars = { urls: urlDatabase, username: req.cookies["name"]};
+  //console.log(templateVars);
   res.render('urls_index', templateVars);
 });
 
 
 //get a form to add a new URL
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  let templateVars = {username: req.cookies["name"]};
+  res.render('urls_new', templateVars);
 });
 
 //Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["name"] };
   res.render('urls_show', templateVars);
 });
 
@@ -84,7 +87,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 app.post('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //re.params
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["name"]};
   res.render('urls_show', templateVars);
 });
 
@@ -93,7 +96,6 @@ app.post('/urls/:shortURL', (req, res) =>{
   //extract the shortURL from the url req.params
   //extract the longURL from req.body
   urlDatabase[req.params.shortURL] = req.body.longURL;
-  console.log(urlDatabase);
   res.redirect('/urls');
 });
 
@@ -101,6 +103,7 @@ app.post('/urls/:shortURL', (req, res) =>{
 //POST a route to submitting a form of username in the _header partial file
 app.post('/login', (req, res) => {
   res.cookie('name' , req.body.username);
+  console.log('from login route:' , req.body.username);
   res.redirect('urls');
 });
 
