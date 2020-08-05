@@ -94,8 +94,14 @@ app.post('/urls/:shortURL', (req, res) =>{
   //extract the longURL from req.body
   urlDatabase[req.params.shortURL] = req.body.longURL;
   console.log(urlDatabase);
-  
   res.redirect('/urls');
+});
+
+
+//POST a route to submitting a form of username in the _header partial file
+app.post('/login', (req, res) => {
+  res.cookie('name' , req.body.username);
+  res.redirect('urls');
 });
 
 
