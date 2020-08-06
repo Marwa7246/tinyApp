@@ -14,7 +14,6 @@ app.use(cookieParser());
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
-//const hash =
 
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
@@ -23,10 +22,7 @@ app.use(cookieSession({
 }));
 
 
-//Generate a random shortURL Id
-const genetateRandomString = function() {
-  return Math.random().toString(36).substring(2,8);
-};
+
 
 const users = {
   "aJ48lW": {
@@ -48,13 +44,19 @@ const urlDatabase = {
   fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
 };
 
+/////////////////////////////// HELPER FUNCTIONS///////////////////////////
+//1- A function to generate a random shortURL Id
+const genetateRandomString = function() {
+  return Math.random().toString(36).substring(2,8);
+};
 
-//find a user from the user database using the user_id cookie
+
+//2- A function to find a user from the user database using the user_id cookie
 const searchUser = function(users, userId) {
   return users[userId];
 };
 
-// Determine if there is a user related to the given email or not and return this user
+// 3- A function to determine if there is a user related to the given email or not and return this user
 const userExist = function(users, requestedEmail) {
   for (const id in users) {
     if (users[id].email === requestedEmail) {
@@ -64,7 +66,7 @@ const userExist = function(users, requestedEmail) {
   return false;
 };
 
-// determine if the email and password match the userdatabase
+// 4- A function to determine if the email and password match the userdatabase
 const userAuthentication = function(users,requestedEmail, requestedPassword) {
   const id = userExist(users, requestedEmail);
   if (id) {      /////// email found, check the password next
@@ -88,27 +90,27 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
 };
 
 
-//Return the url pair (short and long) for a given shortURL
+//5- A function that Return the url pair (short and long) for a given shortURL
 const searchUrl = function(urlDatabase, shortURL) {
   let longURL = '';
   if (urlDatabase[shortURL]) {
     longURL =  urlDatabase[shortURL].longURL;
   }
-  return {shortURL: shortURL, longURL: longURL };
+  return {shortURL, longURL };
 };
 
-//Return a list of Url pair (short and long ) for a given user
+//6- A function to return a list of Url pair (short and long ) for a given user
 const urlsForUserId = function(urlDatabase, requestedUserId) {
   let urlUser = {};
   for (const shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userId === requestedUserId) {
-      urlUser[shortURL] = {shortURL: shortURL , longURL: urlDatabase[shortURL].longURL};
+      urlUser[shortURL] = {shortURL, longURL: urlDatabase[shortURL].longURL};
     }
   }
   return urlUser;
 };
 
-// const aSpecificUrlToASpecificUser = function(userId, shortURL, urlDatabase) {
+// const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
 //   const urls = urlsForUserId(urlDatabase, userId);
 //   const url = searchUrl(urls, shortURL);
 //   let error = '';
@@ -123,7 +125,12 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   
 // };
 
-//Get all the available urls in the database object
+/////////////////END OF HELPERS FUNCTIONS///////////////////////////////////
+
+
+//////////////////////ROUTEs/////////////////////////////
+
+//1- Get all the available urls in the database object
 app.get('/urls', (req, res) => {
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
@@ -139,7 +146,7 @@ app.get('/urls', (req, res) => {
 });
 
 
-//get a form to add a new URL
+//2- get a form to add a new URL
 app.get('/urls/new', (req, res) => {
   const userId = req.session.user_id;
   if (!userId) {
@@ -151,7 +158,16 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
-//Get to a web page where a specific requested shortURL is shown
+//3- Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL (SHOULD BE COMBINED WITH THE PRIVOUS ROUTE TO ADD A NEW url)
+app.post('/urls', (req, res) => {
+  const userId = req.session.user_id;
+  const longURL = req.body.longURL;
+  const newId = genetateRandomString();
+  urlDatabase[newId] = {longURL, userId};
+  res.redirect(`/urls/${newId}`);
+});
+
+//4- Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
@@ -170,20 +186,13 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-//Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
-app.post('/urls', (req, res) => {
-  const userId = req.session.user_id;
-  const longURL = req.body.longURL;
-  const newId = genetateRandomString();
-  urlDatabase[newId] = {longURL, userId};
-  res.redirect(`/urls/${newId}`);
-});
 
-//Get to longURL real web page after clicking on the shortURL (in the url_show page) (redirect)
+
+//5- Get to longURL real web page after clicking on the shortURL (in the url_show page) (redirect)
 app.get(`/u/:shortURL`, (req, res) => {
   const redirectShortUrl = req.params.shortURL;
 
-  //Render a 404 error page if wrong short URL is requested
+  //6- Render a 404 error page if wrong short URL is requested
   if (!urlDatabase[redirectShortUrl]) {
     res.statusCode = 404;
     res.render('404');
@@ -193,7 +202,7 @@ app.get(`/u/:shortURL`, (req, res) => {
   }
 });
 
-//Delete a URL from the urlDatabase - DELETE(POST)
+//7- Delete a URL from the urlDatabase - DELETE(POST)
 app.post('/urls/:shortURL/delete', (req, res) =>{
   //extract the id from the url
   //req.params
@@ -206,14 +215,12 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
     //delete it from the database
     delete urlDatabase[ShortUrl];
   }
-  
-
   //redirect to /urls
   res.redirect('/urls');
 });
 
-//Update a URL in the urlDatabase - UPDATE(POST)
-//1- show the requested url page after hitting edit in the database page
+//8- Update a URL in the urlDatabase - UPDATE(POST)
+//8-1- show the requested url page after hitting edit in the database page
 app.get('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //req.params
@@ -236,7 +243,7 @@ app.get('/urls/:shortURL/update', (req, res) =>{
   res.render('urls_show', templateVars);
 });
 
-//2- POST the new longURL value after filling the form of update the longURL
+//8-2- POST the new longURL value after filling the form of update the longURL
 app.post('/urls/:shortURL', (req, res) =>{
   //extract the shortURL from the url req.params
   //extract the longURL from req.body ONLY if the user has this url in this database
@@ -252,14 +259,14 @@ app.post('/urls/:shortURL', (req, res) =>{
 });
 
 
-//POST a route to logout in the _header partial file
+//9-POST a route to logout in the _header partial file
 app.post('/logout', (req, res) => {
   delete req.session.user_id;
   res.redirect('urls');
 });
 
 
-//GET a route to a page with a registration form (GET) READ
+//10- GET a route to a page with a registration form (GET) READ
 app.get('/register', (req, res) => {
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
@@ -268,7 +275,7 @@ app.get('/register', (req, res) => {
   res.render('register', templateVars);
 });
 
-//POST a route to create a new user
+//11- POST a route to create a new user
 app.post('/register',(req, res) => {
 
   if (!req.body.email || !req.body.password || userExist(users, req.body.email)) {
@@ -291,7 +298,7 @@ app.post('/register',(req, res) => {
   }
 });
 
-//GET a route to a page contaning a form login (email and password) (login form) GET(READ)
+//12- GET a route to a page contaning a login form (email and password) (login form) GET(READ)
 app.get('/login', (req, res) => {
   const error = '';
   const user = '';
@@ -299,7 +306,7 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//POST a route to login to an existing user (POST)
+//13- POST a route to login to an existing user (POST)
 app.post('/login',(req, res) => {
   const requestedEmail = req.body.email;
   const requestedPassword = req.body.password;
@@ -321,7 +328,7 @@ app.post('/login',(req, res) => {
 
 
 
-//get an error page if a non excisting page was requested
+//14- get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {
   res.statusCode = 404;
   res.render('404');
