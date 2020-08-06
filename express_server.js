@@ -76,7 +76,10 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
 
 //Return the url pair (short and long) for a given shortURL
 const searchUrl = function(urlDatabase, shortURL) {
-  const longURL =  urlDatabase[shortURL].longURL;
+  let longURL = '';
+  if (urlDatabase[shortURL]) {
+    longURL =  urlDatabase[shortURL].longURL;
+  }
   return {shortURL: shortURL, longURL: longURL };
 };
 
@@ -129,8 +132,18 @@ app.get('/urls/:shortURL', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
   const shortURL = req.params.shortURL;
-  const url = searchUrl(urlDatabase, shortURL);
-  let templateVars = { url, user};
+  const urls = urlsForUserId(urlDatabase, userId);
+  console.log(urls);
+  const url = searchUrl(urls, shortURL);
+  let error = '';
+  if (!url.longURL) {
+    if (!userId) {
+      error = 'Register or login first!';
+    } else {
+      error = 'Bad request! This url does not exist!';
+    }
+  }
+  let templateVars = { url, user, error};
   res.render('urls_show', templateVars);
 });
 
