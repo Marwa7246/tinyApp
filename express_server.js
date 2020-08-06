@@ -65,11 +65,14 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
-
+const searchUrl = function(urlDatabase, shortURL) {
+  const longURL =  urlDatabase[shortURL].longURL;
+  return {shortURL: shortURL, longURL: longURL };
+};
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
@@ -97,12 +100,13 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const shortURL = req.params.shortURL;
+  const url = searchUrl(urlDatabase, shortURL);
   let templateVars = { url, user};
   res.render('urls_show', templateVars);
 });
 
-//Post a new longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
+//Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
 app.post('/urls', (req, res) => {
   const newUrl = req.body.longURL;
   const newId = genetateRandomString();
@@ -110,7 +114,7 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${newId}`);
 });
 
-//Get to longURL page after requesting the shortURL (redirect)
+//Get to longURL real web page after clicking on the shortURL (in the url_show page) (redirect)
 app.get(`/u/:shortURL`, (req, res) => {
   const redirectShortUrl = req.params.shortURL;
 
@@ -119,7 +123,7 @@ app.get(`/u/:shortURL`, (req, res) => {
     res.statusCode = 404;
     res.render('404');
   } else {
-    const redirectLongUrl = urlDatabase[redirectShortUrl];
+    const redirectLongUrl = urlDatabase[redirectShortUrl].longURL;
     res.redirect(redirectLongUrl);
   }
 });
@@ -144,7 +148,8 @@ app.post('/urls/:shortURL/update', (req, res) =>{
   //req.params
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const shortURL = req.params.shortURL;
+  const url = searchUrl(urlDatabase, shortURL);
   let templateVars = { url, user};
   res.render('urls_show', templateVars);
 });
