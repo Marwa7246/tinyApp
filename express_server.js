@@ -83,21 +83,31 @@ const searchUrl = function(urlDatabase, shortURL) {
   return {shortURL: shortURL, longURL: longURL };
 };
 
-//Return a list if Url pair (short and long ) for a given user
+//Return a list of Url pair (short and long ) for a given user
 const urlsForUserId = function(urlDatabase, requestedUserId) {
   let urlUser = {};
   for (const shortURL in urlDatabase) {
-    console.log(shortURL, requestedUserId);
     if (urlDatabase[shortURL].userId === requestedUserId) {
       urlUser[shortURL] = {shortURL: shortURL , longURL: urlDatabase[shortURL].longURL};
-      
     }
   }
-  console.log(urlUser);
   return urlUser;
 };
 
-
+const aSpecificUrlToASpecificUser = function(userId, shortURL, urlDatabase) {
+  const urls = urlsForUserId(urlDatabase, userId);
+  const url = searchUrl(urls, shortURL);
+  let error = '';
+  if (!url.longURL) {
+    if (!userId) {
+      error = 'Register or login first!';
+    } else {
+      error = 'Bad request! This url does not exist!';
+    }
+  }
+  return {url, error};
+  
+};
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
@@ -133,7 +143,6 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = searchUser(users, userId);
   const shortURL = req.params.shortURL;
   const urls = urlsForUserId(urlDatabase, userId);
-  console.log(urls);
   const url = searchUrl(urls, shortURL);
   let error = '';
   if (!url.longURL) {
@@ -149,9 +158,10 @@ app.get('/urls/:shortURL', (req, res) => {
 
 //Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
 app.post('/urls', (req, res) => {
-  const newUrl = req.body.longURL;
+  const userId = req.cookies["user_id"];
+  const longURL = req.body.longURL;
   const newId = genetateRandomString();
-  urlDatabase[newId] = newUrl;
+  urlDatabase[newId] = {longURL, userId};
   res.redirect(`/urls/${newId}`);
 });
 
@@ -174,9 +184,17 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   //extract the id from the url
   //req.params
   const ShortUrl = req.params.shortURL;
+  const userId = req.cookies["user_id"];
+  const urls = urlsForUserId(urlDatabase, userId);
+  const url = searchUrl(urls, ShortUrl);
+  console.log(url);
+  if (url.longURL) {
+    //delete it from the database
+    delete urlDatabase[ShortUrl];
+    console.log(urlDatabase);
+
+  }
   
-  //delete it from the database
-  delete urlDatabase[ShortUrl];
 
   //redirect to /urls
   res.redirect('/urls');
@@ -187,19 +205,34 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 app.post('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //req.params
+  const shortURL = req.params.shortURL;
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  const shortURL = req.params.shortURL;
-  const url = searchUrl(urlDatabase, shortURL);
-  let templateVars = { url, user};
+  const urls = urlsForUserId(urlDatabase, userId);
+  const url = searchUrl(urls, shortURL);
+  
+  let error = '';
+  if (!url.longURL) {
+    if (!userId) {
+      error = 'Register or login first!';
+    } else {
+      error = 'Bad request! This url does /not exist!';
+    }
+  }
+  
+  let templateVars = { url, user, error};
   res.render('urls_show', templateVars);
 });
 
 //2- POST the new longURL value after filling the form of update the longURL
 app.post('/urls/:shortURL', (req, res) =>{
   //extract the shortURL from the url req.params
-  //extract the longURL from req.body
+  //extract the longURL from req.body ONLY if the user has this url in this database
+  const userId = req.cookies["user_id"];
+  const shortURL = req.params.shortURL;
+
   urlDatabase[req.params.shortURL] = req.body.longURL;
+  
   res.redirect('/urls');
 });
 
