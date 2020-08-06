@@ -18,11 +18,8 @@ const salt = bcrypt.genSaltSync(saltRounds);
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
-  keys: ['hello', 'nice']
+  keys: ['key1', 'key2']
 }));
-
-
-
 
 const users = {
   "aJ48lW": {
@@ -110,20 +107,20 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   return urlUser;
 };
 
-// const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
-//   const urls = urlsForUserId(urlDatabase, userId);
-//   const url = searchUrl(urls, shortURL);
-//   let error = '';
-//   if (!url.longURL) {
-//     if (!userId) {
-//       error = 'Register or login first!';
-//     } else {
-//       error = 'Bad request! This url does not exist!';
-//     }
-//   }
-//   return {url, error};
+const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
+  const urls = urlsForUserId(urlDatabase, userId);
+  const url = searchUrl(urls, shortURL);
+  let error = '';
+  if (!url.longURL) {
+    if (!userId) {
+      error = 'Register or login first!';
+    } else {
+      error = 'Bad request! You don\'t have access to this URL!';
+    }
+  }
+  return {url, error};
   
-// };
+};
 
 /////////////////END OF HELPERS FUNCTIONS///////////////////////////////////
 
@@ -153,7 +150,7 @@ app.get('/urls/new', (req, res) => {
     res.redirect('/login');
   } else {
     const user = searchUser(users, userId);
-    let templateVars = { user};
+    let templateVars = { user };
     res.render('urls_new', templateVars);
   }
 });
@@ -206,16 +203,16 @@ app.get(`/u/:shortURL`, (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) =>{
   //extract the id from the url
   //req.params
-  const ShortUrl = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   const userId = req.session.user_id;
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, ShortUrl);
-  console.log(url);
-  if (url.longURL) {
-    //delete it from the database
-    delete urlDatabase[ShortUrl];
+
+  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+
+  if (!resultSearchObj.error) {
+  //   //delete it from the database
+    delete urlDatabase[shortURL];
   }
-  //redirect to /urls
+  // //redirect to /urls
   res.redirect('/urls');
 });
 
@@ -227,18 +224,11 @@ app.get('/urls/:shortURL/update', (req, res) =>{
   const shortURL = req.params.shortURL;
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
   
-  let error = '';
-  if (!url.longURL) {
-    if (!userId) {
-      error = 'Register or login first!';
-    } else {
-      error = 'Bad request! This url does not exist!';
-    }
-  }
-  
+  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const url = resultSearchObj.url;
+  const error = resultSearchObj.error;
+
   let templateVars = { url, user, error};
   res.render('urls_show', templateVars);
 });
@@ -249,9 +239,10 @@ app.post('/urls/:shortURL', (req, res) =>{
   //extract the longURL from req.body ONLY if the user has this url in this database
   const userId = req.session.user_id;
   const shortURL = req.params.shortURL;
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
-  if (url.longURL) {
+  
+  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+
+  if (!resultSearchObj.error) {
     //Upadate the url in the database
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   }
