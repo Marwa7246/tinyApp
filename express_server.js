@@ -12,6 +12,9 @@ app.use(cookieParser());
 
 
 const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
+//const hash =
 
 //Generate a random shortURL Id
 const genetateRandomString = function() {
@@ -22,12 +25,12 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", salt)
   },
   "QJ76lT": {
     id: "QJ76lT",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", salt)
   }
 };
 
@@ -59,7 +62,8 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
   const id = userExist(users, requestedEmail);
   if (id) {      /////// email found, check the password next
 
-    if (users[id].password === requestedPassword) {
+    if (bcrypt.compareSync(requestedPassword, users[id].password)) {
+      
       ////great success. GOOD password
       // will render the user(requestedEmail, requestedPassword)
       return true;
@@ -272,8 +276,10 @@ app.post('/register',(req, res) => {
 
   } else {
     const newId = genetateRandomString();
-    const newUser = {id: newId, email: req.body.email, password: req.body.password};
+    const newUserPassword = bcrypt.hashSync(req.body.password, salt);
+    const newUser = {id: newId, email: req.body.email, password: newUserPassword};
     users[newId] = newUser;
+    console.log(users)
     res.cookie('user_id', newId);
     res.redirect('urls');
   }
