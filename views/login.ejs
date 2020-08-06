@@ -18,16 +18,16 @@
       <h3>Login</h3>
       <form class="form-inline" action="/login" method="POST">
         <div class="form-group mb-2">
-          <ul>
-          <% if(error){ %>
-            <li style="color:red;"><%= error %></li>
-            <% } %>
-            <li><label for="email">Email Address </label></li>
-            <input type="text" name="email" placeholder="email" style="width: 200px; margin: 5px">
-            <li><label for="email">Password </label></li>
-            <input type="text" name="password" placeholder="password" style="width: 200px; margin: 5px">
-            <li><button type="submit" class="btn btn-primary">Login</button></li>
-        </ul>
+          <p>Email Address <br>
+          <input type="text" name="email" placeholder="email" style="width: 200px; margin: 5px"><br>
+            Password<br>
+            <input type="text" name="password" placeholder="password" style="width: 200px; margin: 5px"><br>
+            <button type="submit" class="btn btn-primary">login</button><br>
+            
+            <% if(error){ %>
+              <span style="color:red;"><%= error %>
+              <% } %>
+          </p>
         </div>
       </form>
     </main>
