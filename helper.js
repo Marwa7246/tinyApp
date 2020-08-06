@@ -14,8 +14,8 @@ const searchUser = function(users, userId) {
   return users[userId];
 };
 
-// 3- A function to determine if there is a user related to the given email or not and return this user
-const userExist = function(users, requestedEmail) {
+// 3- A function to determine if there is a user related to the given email or not and return this user id.
+const getUserByEmail = function(users, requestedEmail) {
   for (const id in users) {
     if (users[id].email === requestedEmail) {
       return id;
@@ -26,11 +26,11 @@ const userExist = function(users, requestedEmail) {
 
 // 4- A function to determine if the email and password match the userdatabase
 const userAuthentication = function(users,requestedEmail, requestedPassword) {
-  const id = userExist(users, requestedEmail);
+  const id = getUserByEmail(users, requestedEmail);
+
   if (id) {      /////// email found, check the password next
 
     if (bcrypt.compareSync(requestedPassword, users[id].password)) {
-      
       ////great success. GOOD password
       // will render the user(requestedEmail, requestedPassword)
       return true;
@@ -68,7 +68,7 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   return urlUser;
 };
 
-//7- A function to determine the authentication of a user to acccess a specific url (either there is a uer )
+//7- A function to determine the authentication of a user to acccess a specific url (and either of not there is a user logged in )
 const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
   const urls = urlsForUserId(urlDatabase, userId);
   const url = searchUrl(urls, shortURL);
@@ -94,7 +94,7 @@ module.exports = {
   genetateRandomString,
   specificUrlToSpecificUser,
   searchUser,
-  userExist,
+  getUserByEmail,
   userAuthentication,
   searchUrl,
   urlsForUserId

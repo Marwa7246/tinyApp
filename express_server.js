@@ -1,5 +1,5 @@
  
-const {searchUser, genetateRandomString,specificUrlToSpecificUser, userExist, userAuthentication,searchUrl,urlsForUserId} = require('./helper');
+const {searchUser, genetateRandomString,specificUrlToSpecificUser, getUserByEmail, userAuthentication,urlsForUserId} = require('./helper');
 
 
 const express = require('express');
@@ -44,90 +44,9 @@ const urlDatabase = {
   fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
 };
 
-/*
+
 /////////////////////////////// HELPER FUNCTIONS///////////////////////////
-//1- A function to generate a random shortURL Id
-const genetateRandomString = function() {
-  return Math.random().toString(36).substring(2,8);
-};
-
-
-//2- A function to find a user from the user database using the user_id cookie
-const searchUser = function(users, userId) {
-  return users[userId];
-};
-
-// 3- A function to determine if there is a user related to the given email or not and return this user
-const userExist = function(users, requestedEmail) {
-  for (const id in users) {
-    if (users[id].email === requestedEmail) {
-      return id;
-    }
-  }
-  return false;
-};
-
-// 4- A function to determine if the email and password match the userdatabase
-const userAuthentication = function(users,requestedEmail, requestedPassword) {
-  const id = userExist(users, requestedEmail);
-  if (id) {      /////// email found, check the password next
-
-    if (bcrypt.compareSync(requestedPassword, users[id].password)) {
-      
-      ////great success. GOOD password
-      // will render the user(requestedEmail, requestedPassword)
-      return true;
-    } else {
-      //////////////// great failure.BAD password
-      // res.send("Bad Email/password combination...")
-      return false;
-    }
-  } else {
-    //////////////////// Ultimate failure. BAD email. Don't care about the password
-    // res.send("Bad Email/password combination...")
-
-    return false;
-  }
-};
-
-
-//5- A function that Return the url pair (short and long) for a given shortURL
-const searchUrl = function(urlDatabase, shortURL) {
-  let longURL = '';
-  if (urlDatabase[shortURL]) {
-    longURL =  urlDatabase[shortURL].longURL;
-  }
-  return {shortURL, longURL };
-};
-
-//6- A function to return a list of Url pair (short and long ) for a given user
-const urlsForUserId = function(urlDatabase, requestedUserId) {
-  let urlUser = {};
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userId === requestedUserId) {
-      urlUser[shortURL] = {shortURL, longURL: urlDatabase[shortURL].longURL};
-    }
-  }
-  return urlUser;
-};
-
-//7- A function to determine the authentication of a user to acccess a specific url (either there is a uer )
-const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
-  let error = '';
-  if (!url.longURL) {
-    if (!userId) {
-      error = 'Register or login first!';
-    } else {
-      error = 'Bad request! You don\'t have access to this URL!';
-    }
-  }
-  return {url, error};
-  
-};
-*/
-/////////////////END OF HELPERS FUNCTIONS///////////////////////////////////
+//In helper.js file
 
 
 //////////////////////ROUTEs/////////////////////////////
@@ -171,19 +90,16 @@ app.post('/urls', (req, res) => {
 
 //4- Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
+  //extract the id from the url
+  //req.params
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
   const shortURL = req.params.shortURL;
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
-  let error = '';
-  if (!url.longURL) {
-    if (!userId) {
-      error = 'Register or login first!';
-    } else {
-      error = 'Bad request! This url does not exist!';
-    }
-  }
+  
+  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const url = resultSearchObj.url;
+  const error = resultSearchObj.error;
+
   let templateVars = { url, user, error};
   res.render('urls_show', templateVars);
 });
@@ -274,9 +190,9 @@ app.get('/register', (req, res) => {
 //11- POST a route to create a new user
 app.post('/register',(req, res) => {
 
-  if (!req.body.email || !req.body.password || userExist(users, req.body.email)) {
+  if (!req.body.email || !req.body.password || getUserByEmail(users, req.body.email)) {
     let error = 'Error-Bad request. ';
-    error += (userExist(users, req.body.email)) ? 'Email already exists!' : 'Email/password cannot be empty!';
+    error += (getUserByEmail(users, req.body.email)) ? 'Email already exists!' : 'Email/password cannot be empty!';
 
     res.statusCode = 400;
     const userId = req.session.user_id;
@@ -308,7 +224,7 @@ app.post('/login',(req, res) => {
   const requestedPassword = req.body.password;
 
   if (userAuthentication(users,requestedEmail, requestedPassword)) {
-    const userId = userExist(users, requestedEmail);
+    const userId = getUserByEmail(users, requestedEmail);
     req.session.user_id = userId;
     res.redirect('urls');
 
