@@ -16,23 +16,32 @@ const genetateRandomString = function() {
 };
 
 const users = {
-  "u8qwvt": {
-    id: "u8qwvt",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
-  "u5qaf3": {
-    id: "u5qaf3",
+  "QJ76lT": {
+    id: "QJ76lT",
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
+
+
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userId: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userId: "QJ76lT" },
+  fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
+};
+
+
 //find a user from the user database using the user_id cookie
 const searchUser = function(users, userId) {
   return users[userId];
 };
 
- 
+// Determine if there is a user related to the given email or not and return this user
 const userExist = function(users, requestedEmail) {
   for (const id in users) {
     if (users[id].email === requestedEmail) {
@@ -42,7 +51,7 @@ const userExist = function(users, requestedEmail) {
   return false;
 };
 
-
+// determine if the email and password match the userdatabase
 const userAuthentication = function(users,requestedEmail, requestedPassword) {
   const id = userExist(users, requestedEmail);
   if (id) {      /////// email found, check the password next
@@ -64,23 +73,42 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
   }
 };
 
-const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
-};
 
+//Return the url pair (short and long) for a given shortURL
 const searchUrl = function(urlDatabase, shortURL) {
   const longURL =  urlDatabase[shortURL].longURL;
   return {shortURL: shortURL, longURL: longURL };
 };
 
+//Return a list if Url pair (short and long ) for a given user
+const urlsForUserId = function(urlDatabase, requestedUserId) {
+  let urlUser = {};
+  for (const shortURL in urlDatabase) {
+    console.log(shortURL, requestedUserId);
+    if (urlDatabase[shortURL].userId === requestedUserId) {
+      urlUser[shortURL] = {shortURL: shortURL , longURL: urlDatabase[shortURL].longURL};
+      
+    }
+  }
+  console.log(urlUser);
+  return urlUser;
+};
+
+
+
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  let templateVars = { urls: urlDatabase, user};
-  //console.log(templateVars);
+  const urls = urlsForUserId(urlDatabase, userId);
+
+  let error = '';
+  if (!userId) {
+    error = 'Register or login first!';
+  }
+  let templateVars = { urls, user, error};
   res.render('urls_index', templateVars);
+
 });
 
 
