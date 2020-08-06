@@ -34,32 +34,48 @@ const searchUser = function(users, userId) {
 
  
 const userExist = function(users, requestedEmail) {
-  for (const element in users) {
-    if (users[element].email === requestedEmail) {
-      return element;
+  for (const id in users) {
+    if (users[id].email === requestedEmail) {
+      return id;
     }
   }
   return false;
 };
 
 
+const userAuthentication = function(users,requestedEmail, requestedPassword) {
+  const id = userExist(users, requestedEmail);
+  if (id) {      /////// email found, check the password next
+
+    if (users[id].password === requestedPassword) {
+      ////great success. GOOD password
+      // will render the user(requestedEmail, requestedPassword)
+      return true;
+    } else {
+      //////////////// great failure.BAD password
+      // res.send("Bad Email/password combination...")
+      return false;
+    }
+  } else {
+    //////////////////// Ultimate failure. BAD email. Don't care about the password
+    // res.send("Bad Email/password combination...")
+
+    return false;
+  }
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-//Get the home page
-app.get('/', (req, res) => {
-  res.send('Hello!');
-});
 
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  let templateVars = { urls: urlDatabase, user: user};
+  let templateVars = { urls: urlDatabase, user};
   //console.log(templateVars);
   res.render('urls_index', templateVars);
 });
@@ -69,7 +85,7 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
-  let templateVars = { user: user};
+  let templateVars = { user};
   res.render('urls_new', templateVars);
 });
 
@@ -78,7 +94,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
   const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  let templateVars = { url: url, user: user};
+  let templateVars = { url, user};
   res.render('urls_show', templateVars);
 });
 
@@ -125,7 +141,7 @@ app.post('/urls/:shortURL/update', (req, res) =>{
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
   const url = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  let templateVars = { url: url, user: user};
+  let templateVars = { url, user};
   res.render('urls_show', templateVars);
 });
 
@@ -136,15 +152,6 @@ app.post('/urls/:shortURL', (req, res) =>{
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect('/urls');
 });
-
-
-//POST a route to submitting a form of username(login) in the _header partial file
-// app.post('/login', (req, res) => {
-//   console.log(req.body);
-//   const userId = userExist(users, req.body.email);
-//   res.cookie('user_id', userId);
-//   res.redirect('urls');
-// });
 
 
 //POST a route to logout in the _header partial file
@@ -159,7 +166,7 @@ app.get('/register', (req, res) => {
   const userId = req.cookies["user_id"];
   const user = searchUser(users, userId);
   const error = '';
-  let templateVars = { urls: urlDatabase, user: user, error: error};
+  let templateVars = {user, error};
   res.render('register', templateVars);
 });
 
@@ -173,7 +180,7 @@ app.post('/register',(req, res) => {
     res.statusCode = 400;
     const userId = req.cookies["user_id"];
     const user = searchUser(users, userId);
-    let templateVars = { user: user, error: error};
+    let templateVars = { user, error};
     res.render("register", templateVars);
 
   } else {
@@ -185,14 +192,35 @@ app.post('/register',(req, res) => {
   }
 });
 
-//GET a route to a page contaning a form login (username and password) (login form) GET(READ)
+//GET a route to a page contaning a form login (email and password) (login form) GET(READ)
 app.get('/login', (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = searchUser(users, userId);
   const error = '';
-  let templateVars = { user: user, error: error};
+  const user = '';
+  let templateVars = {user, error};
   res.render('login', templateVars);
 });
+////////////////////////////////////////////////////////////////////////////////////////////////
+//POST a route to login to an existing user (POST)
+app.post('/login',(req, res) => {
+  const requestedEmail = req.body.email;
+  const requestedPassword = req.body.password;
+
+  if (userAuthentication(users,requestedEmail, requestedPassword)) {
+    const userId = userExist(users, requestedEmail);
+    res.cookie('user_id', userId);
+    res.redirect('urls');
+
+  } else {
+    const error = 'Error Invalid email/password combination';
+    res.statusCode = 403;
+    const user = '';
+    let templateVars = { user, error};
+    res.render("login", templateVars);
+  }
+});
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 //get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {
