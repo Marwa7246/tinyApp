@@ -94,20 +94,20 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   return urlUser;
 };
 
-const aSpecificUrlToASpecificUser = function(userId, shortURL, urlDatabase) {
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
-  let error = '';
-  if (!url.longURL) {
-    if (!userId) {
-      error = 'Register or login first!';
-    } else {
-      error = 'Bad request! This url does not exist!';
-    }
-  }
-  return {url, error};
+// const aSpecificUrlToASpecificUser = function(userId, shortURL, urlDatabase) {
+//   const urls = urlsForUserId(urlDatabase, userId);
+//   const url = searchUrl(urls, shortURL);
+//   let error = '';
+//   if (!url.longURL) {
+//     if (!userId) {
+//       error = 'Register or login first!';
+//     } else {
+//       error = 'Bad request! This url does not exist!';
+//     }
+//   }
+//   return {url, error};
   
-};
+// };
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
@@ -191,8 +191,6 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   if (url.longURL) {
     //delete it from the database
     delete urlDatabase[ShortUrl];
-    console.log(urlDatabase);
-
   }
   
 
@@ -202,7 +200,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 
 //Update a URL in the urlDatabase - UPDATE(POST)
 //1- show the requested url page after hitting edit in the database page
-app.post('/urls/:shortURL/update', (req, res) =>{
+app.get('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //req.params
   const shortURL = req.params.shortURL;
@@ -216,7 +214,7 @@ app.post('/urls/:shortURL/update', (req, res) =>{
     if (!userId) {
       error = 'Register or login first!';
     } else {
-      error = 'Bad request! This url does /not exist!';
+      error = 'Bad request! This url does not exist!';
     }
   }
   
@@ -230,9 +228,12 @@ app.post('/urls/:shortURL', (req, res) =>{
   //extract the longURL from req.body ONLY if the user has this url in this database
   const userId = req.cookies["user_id"];
   const shortURL = req.params.shortURL;
-
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  
+  const urls = urlsForUserId(urlDatabase, userId);
+  const url = searchUrl(urls, shortURL);
+  if (url.longURL) {
+    //Upadate the url in the database
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  }
   res.redirect('/urls');
 });
 
