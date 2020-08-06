@@ -16,6 +16,13 @@ const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 //const hash =
 
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['hello', 'nice']
+}));
+
+
 //Generate a random shortURL Id
 const genetateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
@@ -118,7 +125,7 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
 
 //Get all the available urls in the database object
 app.get('/urls', (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const user = searchUser(users, userId);
   const urls = urlsForUserId(urlDatabase, userId);
 
@@ -134,7 +141,7 @@ app.get('/urls', (req, res) => {
 
 //get a form to add a new URL
 app.get('/urls/new', (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   if (!userId) {
     res.redirect('/login');
   } else {
@@ -146,7 +153,7 @@ app.get('/urls/new', (req, res) => {
 
 //Get to a web page where a specific requested shortURL is shown
 app.get('/urls/:shortURL', (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const user = searchUser(users, userId);
   const shortURL = req.params.shortURL;
   const urls = urlsForUserId(urlDatabase, userId);
@@ -165,7 +172,7 @@ app.get('/urls/:shortURL', (req, res) => {
 
 //Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL
 app.post('/urls', (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const longURL = req.body.longURL;
   const newId = genetateRandomString();
   urlDatabase[newId] = {longURL, userId};
@@ -191,7 +198,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   //extract the id from the url
   //req.params
   const ShortUrl = req.params.shortURL;
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const urls = urlsForUserId(urlDatabase, userId);
   const url = searchUrl(urls, ShortUrl);
   console.log(url);
@@ -211,7 +218,7 @@ app.get('/urls/:shortURL/update', (req, res) =>{
   //extract the id from the url
   //req.params
   const shortURL = req.params.shortURL;
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const user = searchUser(users, userId);
   const urls = urlsForUserId(urlDatabase, userId);
   const url = searchUrl(urls, shortURL);
@@ -233,7 +240,7 @@ app.get('/urls/:shortURL/update', (req, res) =>{
 app.post('/urls/:shortURL', (req, res) =>{
   //extract the shortURL from the url req.params
   //extract the longURL from req.body ONLY if the user has this url in this database
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const shortURL = req.params.shortURL;
   const urls = urlsForUserId(urlDatabase, userId);
   const url = searchUrl(urls, shortURL);
@@ -247,14 +254,14 @@ app.post('/urls/:shortURL', (req, res) =>{
 
 //POST a route to logout in the _header partial file
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  delete req.session.user_id;
   res.redirect('urls');
 });
 
 
 //GET a route to a page with a registration form (GET) READ
 app.get('/register', (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const user = searchUser(users, userId);
   const error = '';
   let templateVars = {user, error};
@@ -269,7 +276,7 @@ app.post('/register',(req, res) => {
     error += (userExist(users, req.body.email)) ? 'Email already exists!' : 'Email/password cannot be empty!';
 
     res.statusCode = 400;
-    const userId = req.cookies["user_id"];
+    const userId = req.session.user_id;
     const user = searchUser(users, userId);
     let templateVars = { user, error};
     res.render("register", templateVars);
@@ -279,8 +286,7 @@ app.post('/register',(req, res) => {
     const newUserPassword = bcrypt.hashSync(req.body.password, salt);
     const newUser = {id: newId, email: req.body.email, password: newUserPassword};
     users[newId] = newUser;
-    console.log(users)
-    res.cookie('user_id', newId);
+    req.session.user_id = newId;
     res.redirect('urls');
   }
 });
@@ -300,7 +306,7 @@ app.post('/login',(req, res) => {
 
   if (userAuthentication(users,requestedEmail, requestedPassword)) {
     const userId = userExist(users, requestedEmail);
-    res.cookie('user_id', userId);
+    req.session.user_id = userId;
     res.redirect('urls');
 
   } else {
