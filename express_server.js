@@ -1,4 +1,7 @@
  
+const {searchUser, genetateRandomString,specificUrlToSpecificUser, userExist, userAuthentication,searchUrl,urlsForUserId} = require('./helper');
+
+
 const express = require('express');
 const app = express();
 const PORT = 8080;
@@ -41,6 +44,7 @@ const urlDatabase = {
   fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
 };
 
+/*
 /////////////////////////////// HELPER FUNCTIONS///////////////////////////
 //1- A function to generate a random shortURL Id
 const genetateRandomString = function() {
@@ -107,6 +111,7 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   return urlUser;
 };
 
+//7- A function to determine the authentication of a user to acccess a specific url (either there is a uer )
 const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
   const urls = urlsForUserId(urlDatabase, userId);
   const url = searchUrl(urls, shortURL);
@@ -121,7 +126,7 @@ const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
   return {url, error};
   
 };
-
+*/
 /////////////////END OF HELPERS FUNCTIONS///////////////////////////////////
 
 
@@ -330,4 +335,3 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
- 
