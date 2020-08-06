@@ -10,6 +10,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+
+const bcrypt = require('bcrypt');
+
 //Generate a random shortURL Id
 const genetateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
