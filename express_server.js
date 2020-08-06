@@ -84,9 +84,13 @@ app.get('/urls', (req, res) => {
 //get a form to add a new URL
 app.get('/urls/new', (req, res) => {
   const userId = req.cookies["user_id"];
-  const user = searchUser(users, userId);
-  let templateVars = { user};
-  res.render('urls_new', templateVars);
+  if (!userId) {
+    res.redirect('/login');
+  } else {
+    const user = searchUser(users, userId);
+    let templateVars = { user};
+    res.render('urls_new', templateVars);
+  }
 });
 
 //Get to a web page where a specific requested shortURL is shown
