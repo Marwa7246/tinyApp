@@ -139,12 +139,12 @@ app.post('/urls/:shortURL', (req, res) =>{
 
 
 //POST a route to submitting a form of username(login) in the _header partial file
-app.post('/login', (req, res) => {
-  console.log(req.body);
-  const userId = userExist(users, req.body.email);
-  res.cookie('user_id', userId);
-  res.redirect('urls');
-});
+// app.post('/login', (req, res) => {
+//   console.log(req.body);
+//   const userId = userExist(users, req.body.email);
+//   res.cookie('user_id', userId);
+//   res.redirect('urls');
+// });
 
 
 //POST a route to logout in the _header partial file
@@ -183,6 +183,15 @@ app.post('/register',(req, res) => {
     res.cookie('user_id', newId);
     res.redirect('urls');
   }
+});
+
+//GET a route to a page contaning a form login (username and password) (login form) GET(READ)
+app.get('/login', (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = searchUser(users, userId);
+  const error = '';
+  let templateVars = { user: user, error: error};
+  res.render('login', templateVars);
 });
 
 //get an error page if a non excisting page was requested

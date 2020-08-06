@@ -7,7 +7,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
-    <title>Register</title>
+    <title>Login</title>
   </head>
 
   <body>
@@ -15,17 +15,19 @@
     <%- include('partials/_header') %>
 
     <main style="margin: 1em;">
-      <h3>Create Account</h3>
-      <form class="form-inline" action="/register" method="POST">
+      <h3>Login</h3>
+      <form class="form-inline" action="/login" method="POST">
         <div class="form-group mb-2">
+          <ul>
           <% if(error){ %>
-            <p style="color:red;"><%= error %></p>
+            <li style="color:red;"><%= error %></li>
             <% } %>
-          <p>
+            <li><label for="email">Email Address </label></li>
             <input type="text" name="email" placeholder="email" style="width: 200px; margin: 5px">
+            <li><label for="email">Password </label></li>
             <input type="text" name="password" placeholder="password" style="width: 200px; margin: 5px">
-            <button type="submit" class="btn btn-primary">Register</button>
-          </p>
+            <li><button type="submit" class="btn btn-primary">Login</button></li>
+        </ul>
         </div>
       </form>
     </main>
