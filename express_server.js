@@ -88,21 +88,21 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${newId}`);
 });
 
-//4- Get to a web page where a specific requested shortURL is shown
-app.get('/urls/:shortURL', (req, res) => {
-  //extract the id from the url
-  //req.params
-  const userId = req.session.user_id;
-  const user = searchUser(users, userId);
-  const shortURL = req.params.shortURL;
+// //4- Get to a web page where a specific requested shortURL is shown
+// app.get('/urls/:shortURL', (req, res) => {
+//   //extract the id from the url
+//   //req.params
+//   const userId = req.session.user_id;
+//   const user = searchUser(users, userId);
+//   const shortURL = req.params.shortURL;
   
-  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
-  const url = resultSearchObj.url;
-  const error = resultSearchObj.error;
+//   const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+//   const url = resultSearchObj.url;
+//   const error = resultSearchObj.error;
 
-  let templateVars = { url, user, error};
-  res.render('urls_show', templateVars);
-});
+//   let templateVars = { url, user, error};
+//   res.render('urls_show', templateVars);
+// });
 
 
 
@@ -128,18 +128,24 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   const userId = req.session.user_id;
 
   const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const user = searchUser(users, userId);
+  const urls = urlsForUserId(urlDatabase, userId);
 
   if (!resultSearchObj.error) {
   //   //delete it from the database
     delete urlDatabase[shortURL];
+    res.redirect('/urls');
+
   }
   // //redirect to /urls
-  res.redirect('/urls');
+  const error = resultSearchObj.error;
+  let templateVars = { urls, user, error};
+  res.render('urls_index', templateVars);
 });
 
 //8- Update a URL in the urlDatabase - UPDATE(POST)
 //8-1- show the requested url page after hitting edit in the database page
-app.get('/urls/:shortURL/update', (req, res) =>{
+app.get('/urls/:shortURL', (req, res) =>{
   //extract the id from the url
   //req.params
   const shortURL = req.params.shortURL;
@@ -166,8 +172,15 @@ app.post('/urls/:shortURL', (req, res) =>{
   if (!resultSearchObj.error) {
     //Upadate the url in the database
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect('/urls');
+  } else {
+    const user = searchUser(users, userId);
+    const error = resultSearchObj.error;
+    const url = resultSearchObj.url;
+    let templateVars = { url, user, error};
+    res.render('urls_show', templateVars);
+
   }
-  res.redirect('/urls');
 });
 
 
@@ -184,7 +197,12 @@ app.get('/register', (req, res) => {
   const user = searchUser(users, userId);
   const error = '';
   let templateVars = {user, error};
-  res.render('register', templateVars);
+  if (!userId) {
+    res.render('register', templateVars);
+  } else {
+    res.redirect('urls');
+  }
+  
 });
 
 //11- POST a route to create a new user
@@ -202,6 +220,7 @@ app.post('/register',(req, res) => {
 
   } else {
     const newId = genetateRandomString();
+    console.log(req);
     const newUserPassword = bcrypt.hashSync(req.body.password, salt);
     const newUser = {id: newId, email: req.body.email, password: newUserPassword};
     users[newId] = newUser;
@@ -213,9 +232,14 @@ app.post('/register',(req, res) => {
 //12- GET a route to a page contaning a login form (email and password) (login form) GET(READ)
 app.get('/login', (req, res) => {
   const error = '';
-  const user = '';
+  const userId = req.session.user_id;
+  const user = searchUser(users, userId);
   let templateVars = {user, error};
-  res.render('login', templateVars);
+  if  (!userId) {
+    res.render('login', templateVars);
+  } else {
+    res.redirect('urls');
+  }
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //13- POST a route to login to an existing user (POST)
@@ -239,6 +263,17 @@ app.post('/login',(req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
+//14- get to index page or login if the user is not logged in
+app.get(`/`, (req, res) => {
+  const userId = req.session.user_id;
+  console.log(userId);
+  if (!userId) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
+    
+});
 
 //14- get an error page if a non excisting page was requested
 app.get(`*`, (req, res) => {

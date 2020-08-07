@@ -50,11 +50,13 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
 
 //5- A function that Return the url pair (short and long) for a given shortURL
 const searchUrl = function(urlDatabase, shortURL) {
-  let longURL = '';
+  const url = {};
   if (urlDatabase[shortURL]) {
-    longURL =  urlDatabase[shortURL].longURL;
+    url[shortURL] = urlDatabase[shortURL];
+    
   }
-  return {shortURL, longURL };
+  return url;
+
 };
 
 //6- A function to return a list of Url pair (short and long ) for a given user
@@ -62,25 +64,32 @@ const urlsForUserId = function(urlDatabase, requestedUserId) {
   let urlUser = {};
   for (const shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userId === requestedUserId) {
-      urlUser[shortURL] = {shortURL, longURL: urlDatabase[shortURL].longURL};
+      urlUser[shortURL] = urlDatabase[shortURL];
     }
   }
+  
   return urlUser;
 };
 
 //7- A function to determine the authentication of a user to acccess a specific url (and either of not there is a user logged in )
 const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
-  const urls = urlsForUserId(urlDatabase, userId);
-  const url = searchUrl(urls, shortURL);
   let error = '';
-  if (!url.longURL) {
+  let url = {};
+  if (!urlDatabase[shortURL]) {
+    error = "This URL does not exist!";
+    return {url, error};
+  }
+  const urls = urlsForUserId(urlDatabase, userId);
+  url = searchUrl(urls, shortURL);
+  if (!url[shortURL]) {
     if (!userId) {
       error = 'Register or login first!';
     } else {
       error = 'Bad request! You don\'t have access to this URL!';
     }
   }
-  return {url, error};
+  url['error'] = error;
+  return url;
   
 };
 

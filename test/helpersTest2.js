@@ -11,16 +11,15 @@ const testUrlDatabase = {
 };
 
 describe('searchUrl', function() {
-  it('should return a url pair for given shortURL', function() {
+  it('should return the url object for given shortURL', function() {
     const url = searchUrl(testUrlDatabase, "b6UTxQ");
-    const expectedOutput = { longURL: "https://www.tsn.ca", shortURL: "b6UTxQ" };
+    const expectedOutput = { b6UTxQ: { longURL: 'https://www.tsn.ca', userId: 'aJ48lW' } };
     assert.deepEqual(url, expectedOutput);
 
   });
-  it('should return an empty string for the value of longURl for an invalid shorURL', function() {
+  it('should return an empty object for an invalid shorURL', function() {
     const url = searchUrl(testUrlDatabase, "b6UTDD");
-    const expectedOutput = { shortURL: 'b6UTDD', longURL: '' };
-    assert.deepEqual(url, expectedOutput);
+    assert.deepEqual(url, {});
   });
 });
 
@@ -28,19 +27,13 @@ describe('urlsForUserId', function() {
   it('should return a list of Url pair (short and long ) for a given user', function() {
     const url = urlsForUserId(testUrlDatabase, "aJ48lW");
     const expectedOutput = {
-      "b6UTxQ": {
-        "longURL": "https://www.tsn.ca",
-        "shortURL": "b6UTxQ"
-      },
-      "fJHT6T": {
-        "longURL": "https://www.cnn.com",
-        "shortURL": "fJHT6T"
-      }
+      b6UTxQ: { longURL: "https://www.tsn.ca", userId: "aJ48lW" },
+      fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
     };
     assert.deepEqual(url, expectedOutput);
 
   });
-  it('should return an empty object an invalid userId', function() {
+  it('should return an empty object for an invalid userId', function() {
     const url = urlsForUserId(testUrlDatabase, "aJ48lqq");
     const expectedOutput = {};
     assert.deepEqual(url, expectedOutput);
@@ -63,9 +56,7 @@ describe('specificUrlToSpecificUser', function() {
 
   it('should return no error if the looged in user has access to the requested url. The url pair is returned', function() {
     const result = specificUrlToSpecificUser('aJ48lW', 'b6UTxQ',testUrlDatabase);
-    const expectedOutput = {
-      url: { shortURL: 'b6UTxQ', longURL: 'https://www.tsn.ca' },
-      error: '' };
+    const expectedOutput = { b6UTxQ: { longURL: "https://www.tsn.ca", userId: "aJ48lW" },  error: '' };
     assert.deepEqual(result, expectedOutput);
     //assert.strictEqual(result.error, '');
 
