@@ -1,4 +1,4 @@
- const {searchUser, genetateRandomString,specificUrlToSpecificUser, getUserByEmail, userAuthentication,urlsForUserId} = require('./helper');
+const {searchUser, genetateRandomString,specificUrlToSpecificUser, getUserByEmail, userAuthentication,urlsForUserId} = require('./helper');
 
 
 const express = require('express');
