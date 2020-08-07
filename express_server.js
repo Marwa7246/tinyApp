@@ -1,5 +1,4 @@
- 
-const {searchUser, genetateRandomString,specificUrlToSpecificUser, getUserByEmail, userAuthentication,urlsForUserId} = require('./helper');
+ const {searchUser, genetateRandomString,specificUrlToSpecificUser, getUserByEmail, userAuthentication,urlsForUserId} = require('./helper');
 
 
 const express = require('express');
@@ -10,7 +9,7 @@ app.set('view engine', 'ejs');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
-const cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 
@@ -25,23 +24,23 @@ app.use(cookieSession({
 }));
 
 const users = {
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", salt)
+  'aJ48lW': {
+    id: 'aJ48lW',
+    email: 'user@example.com',
+    password: bcrypt.hashSync('purple-monkey-dinosaur', salt)
   },
-  "QJ76lT": {
-    id: "QJ76lT",
-    email: "user2@example.com",
-    password: bcrypt.hashSync("dishwasher-funk", salt)
+  'QJ76lT': {
+    id: 'QJ76lT',
+    email: 'user2@example.com',
+    password: bcrypt.hashSync('dishwasher-funk', salt)
   }
 };
 
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userId: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userId: "QJ76lT" },
-  fJHT6T: { longURL: "https://www.cnn.com", userId: "aJ48lW" }
+  b6UTxQ: { longURL: 'https://www.tsn.ca', userId: 'aJ48lW' },
+  i3BoGr: { longURL: 'https://www.google.ca', userId: 'QJ76lT' },
+  fJHT6T: { longURL: 'https://www.cnn.com', userId: 'aJ48lW' }
 };
 
 
@@ -74,7 +73,8 @@ app.get('/urls/new', (req, res) => {
     res.redirect('/login');
   } else {
     const user = searchUser(users, userId);
-    let templateVars = { user };
+    const error = '';
+    let templateVars = { error, user };
     res.render('urls_new', templateVars);
   }
 });
@@ -84,7 +84,7 @@ app.post('/urls', (req, res) => {
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
   if (!userId) {
-    const error = "Please register or log in first!";
+    const error = 'Please register or log in first!';
     let templateVars = {user,  error };
     res.render('urls_new', templateVars);
   } else {
@@ -215,7 +215,7 @@ app.post('/register',(req, res) => {
     const userId = req.session.user_id;
     const user = searchUser(users, userId);
     let templateVars = { user, error};
-    res.render("register", templateVars);
+    res.render('register', templateVars);
 
   } else {
     const newId = genetateRandomString();
@@ -256,7 +256,7 @@ app.post('/login',(req, res) => {
     res.statusCode = 403;
     const user = '';
     let templateVars = { user, error};
-    res.render("login", templateVars);
+    res.render('login', templateVars);
   }
 });
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -279,7 +279,6 @@ app.get(`*`, (req, res) => {
   res.statusCode = 404;
   res.render('404');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

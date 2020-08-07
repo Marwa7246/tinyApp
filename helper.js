@@ -36,12 +36,12 @@ const userAuthentication = function(users,requestedEmail, requestedPassword) {
       return true;
     } else {
       //////////////// great failure.BAD password
-      // res.send("Bad Email/password combination...")
+      // res.send('Bad Email/password combination...')
       return false;
     }
   } else {
     //////////////////// Ultimate failure. BAD email. Don't care about the password
-    // res.send("Bad Email/password combination...")
+    // res.send('Bad Email/password combination...')
 
     return false;
   }
@@ -76,7 +76,7 @@ const specificUrlToSpecificUser = function(userId, shortURL, urlDatabase) {
   let error = '';
   let url = {};
   if (!urlDatabase[shortURL]) {
-    error = "This URL does not exist!";
+    error = 'This URL does not exist!';
     return {url, error};
   }
   const urls = urlsForUserId(urlDatabase, userId);
