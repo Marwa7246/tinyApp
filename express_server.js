@@ -82,28 +82,20 @@ app.get('/urls/new', (req, res) => {
 //3- Post a NEW longURL and submit it in the form, then redirected to the page showing the new longURL along the corresponding shortURL (SHOULD BE COMBINED WITH THE PRIVOUS ROUTE TO ADD A NEW url)
 app.post('/urls', (req, res) => {
   const userId = req.session.user_id;
-  const longURL = req.body.longURL;
-  const newId = genetateRandomString();
-  urlDatabase[newId] = {longURL, userId};
-  res.redirect(`/urls/${newId}`);
+  const user = searchUser(users, userId);
+  if (!userId) {
+    const error = "Please register or log in first!";
+    let templateVars = {user,  error };
+    res.render('urls_new', templateVars);
+  } else {
+    const userId = req.session.user_id;
+    const longURL = req.body.longURL;
+    const shortURL = genetateRandomString();
+    urlDatabase[shortURL] = {longURL, userId};
+    res.redirect(`/urls/${shortURL}`);
+  }
+
 });
-
-// //4- Get to a web page where a specific requested shortURL is shown
-// app.get('/urls/:shortURL', (req, res) => {
-//   //extract the id from the url
-//   //req.params
-//   const userId = req.session.user_id;
-//   const user = searchUser(users, userId);
-//   const shortURL = req.params.shortURL;
-  
-//   const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
-//   const url = resultSearchObj.url;
-//   const error = resultSearchObj.error;
-
-//   let templateVars = { url, user, error};
-//   res.render('urls_show', templateVars);
-// });
-
 
 
 //5- Get to longURL real web page after clicking on the shortURL (in the url_show page) (redirect)
@@ -148,36 +140,43 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 app.get('/urls/:shortURL', (req, res) =>{
   //extract the id from the url
   //req.params
-  const shortURL = req.params.shortURL;
+  let shortURL = req.params.shortURL;
   const userId = req.session.user_id;
   const user = searchUser(users, userId);
   
-  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
-  const url = resultSearchObj.url;
-  const error = resultSearchObj.error;
-
-  let templateVars = { url, user, error};
+  const url = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const error = url['error'];
+  let  longURL = '';
+  if (!error) {
+    longURL = url[shortURL].longURL;
+  } else {
+    shortURL = '---';
+  }
+  let templateVars = { url, user, error, shortURL, longURL};
   res.render('urls_show', templateVars);
 });
 
-//8-2- POST the new longURL value after filling the form of update the longURL
+//8-2- POST the new longURL value after filling the form of update the longURL and save it to urlDatabase POST(UPDATE)
 app.post('/urls/:shortURL', (req, res) =>{
   //extract the shortURL from the url req.params
   //extract the longURL from req.body ONLY if the user has this url in this database
   const userId = req.session.user_id;
-  const shortURL = req.params.shortURL;
+  let shortURL = req.params.shortURL;
+  let longURL = req.body.longURL;
   
-  const resultSearchObj = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const url = specificUrlToSpecificUser(userId, shortURL, urlDatabase);
+  const error = url['error'];
+  //const longURL = url[shortURL].longURL;
 
-  if (!resultSearchObj.error) {
+  if (!error) {
     //Upadate the url in the database
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    urlDatabase[req.params.shortURL].longURL = longURL;
     res.redirect('/urls');
   } else {
     const user = searchUser(users, userId);
-    const error = resultSearchObj.error;
-    const url = resultSearchObj.url;
-    let templateVars = { url, user, error};
+    shortURL = '---';
+    longURL = '';
+    let templateVars = { user, error, shortURL, longURL};
     res.render('urls_show', templateVars);
 
   }
